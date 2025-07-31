@@ -1,0 +1,3 @@
+1. Modify path finder to ignore paths that intersect other checkpoints
+2. Evaluate paths that pass through all points first
+3. Change order of evaluation based on distance between checkpoints
