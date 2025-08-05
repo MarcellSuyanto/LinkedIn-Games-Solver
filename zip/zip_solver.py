@@ -37,14 +37,16 @@ class Zip:
         self.directions = [(-1,0), (1,0), (0,-1), (0,1)]
         self.route = []
 
-    def find_paths(self):
+    def find_paths_v1(self):
         for i in range(1, len(self.map.checkpoints)):
-            self.path_dfs(self.map.checkpoints[i-1][0], self.map.checkpoints[i-1][1], self.map.checkpoints[i][0], self.map.checkpoints[i][1], [], i)
+            self.path_dfs_v1(self.map.checkpoints[i-1][0], self.map.checkpoints[i-1][1], self.map.checkpoints[i][0], self.map.checkpoints[i][1], [], i)
             print(f'Section {i} done')
         # print(self.paths)
         print("Number of paths: {}".format(sum(len(x) for x in self.paths)))
 
-    def evaluate(self):
+
+
+    def evaluate_v1(self):
         route = []
         print(self.eval_dfs(1, route))
 
@@ -66,15 +68,36 @@ class Zip:
                         route.pop(-1)
 
 
-    def path_dfs(self, cx, cy, ex, ey, path, index):
+    def path_dfs_v1(self, cx, cy, ex, ey, path, index):
         if (cx == ex) and (cy == ey):
             self.paths[index].append(list(path))
         else:
             for dx, dy in self.directions:
                 if (0 <= cx+dx) and (cx+dx < self.map.size) and (0 <= cy+dy) and (cy+dy < self.map.size) and ((cx+dx,cy+dy) not in path) and len(path) < self.map.size**2 * 0.8:
                     path.append((cx+dx, cy+dy))
-                    self.path_dfs(cx+dx, cy+dy, ex, ey, path, index)
+                    self.path_dfs_v1(cx+dx, cy+dy, ex, ey, path, index)
                     path.pop(-1)
+
+    def zip_solve_v2(self, sx: int, sy: int, ex: int, ey: int, path, checkpoints):
+
+        # If current coordinates equal target and if current path length = number of tiles
+        if (sx == ex) and (sy == ey) and len(path) == self.map.size**2:
+            i = 0
+
+            #Check for correct order of checkpoints
+            for point in path:
+                if list(point) in checkpoints and list(point) == checkpoints[i]:
+                    i += 1
+            if i == len(checkpoints):
+                self.route = list(path)
+        else:
+            # For 4 cardinal directions, explores in each
+            for dx, dy in self.directions:
+                if (0 <= sx+dx) and (sx+dx < self.map.size) and (0 <= sy+dy) and (sy+dy < self.map.size) and ((sx+dx,sy+dy) not in path):
+                    path.append((sx+dx, sy+dy))
+                    self.zip_solve_v2(sx+dx, sy+dy, ex, ey, path, checkpoints)
+                    path.pop(-1)
+
 
     def show_path(self, path):
         print("+" + "---+" * len(self.map.map))
@@ -86,13 +109,24 @@ class Zip:
 
 
 test = Zip()
-print("Finding Paths...")
-test.find_paths()
-for i in range(1, len(test.paths) - 1):
-    print(f'Section {i}: {len(test.paths[i])} paths')
-print("Evaluating...")
+
+#Version 1
+# print("Finding Paths...")
+# test.find_paths_v1()
+# for i in range(1, len(test.paths) - 1):
+#     print(f'Section {i}: {len(test.paths[i])} paths')
+# print("Evaluating...")
+# start = time.time()
+# test.evaluate_v1()
+# elap = time.time() - start
+# print(test.route)
+# print(f'Evaluation time: {elap}')
+
+#Version 2
+print(f'Evaluating...')
+path = [(test.map.checkpoints[0][0], test.map.checkpoints[0][1])]
 start = time.time()
-test.evaluate()
+test.zip_solve_v2(test.map.checkpoints[0][0], test.map.checkpoints[0][1], test.map.checkpoints[-1][0], test.map.checkpoints[-1][1], path, test.map.checkpoints)
 elap = time.time() - start
 print(test.route)
 print(f'Evaluation time: {elap}')
